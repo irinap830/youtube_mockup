@@ -1,13 +1,258 @@
 <!doctype html>
+<link rel="stylesheet" href="src/index.css" />
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>youtube_mockup</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Mockup</title>
+
+</head>
+<body>
+<header id="top" class="yt-header">
+  <a href="#top" id="logoLink" class="yt-logo">
+    <span class="yt-badge">▶</span>
+    <span>YouTube</span>
+  </a>
+
+  <div class="yt-search">
+    <input
+            id="searchInput"
+            type="text"
+            placeholder="Search"
+    />
+    <button id="clearBtn" type="button">✕</button>
+  </div>
+
+  <a href="#footer-links" class="yt-header-link">Links</a>
+</header>
+
+<div class="yt-layout">
+  <aside class="yt-sidebar">
+    <p class="yt-menu-title">Menu</p>
+    <ul>
+      <li><button type="button" class="tab-btn active" data-tab="Home">🏠 Home</button></li>
+      <li><button type="button" class="tab-btn" data-tab="Shorts">⚡ Shorts</button></li>
+      <li><button type="button" class="tab-btn" data-tab="Liked">👍 Liked</button></li>
+    </ul>
+  </aside>
+
+  <main class="yt-main">
+    <section id="playerBox" class="yt-player" hidden>
+      <div class="yt-screen">
+        <p id="playerScreen"></p>
+      </div>
+      <div class="yt-player-info">
+        <p id="playerMeta"></p>
+        <button id="closePlayerBtn" type="button">Close Player</button>
+      </div>
+    </section>
+
+    <div id="categoryBar" class="yt-categories">
+      <button type="button" class="cat-btn active" data-cat="All">All</button>
+      <button type="button" class="cat-btn" data-cat="React">React</button>
+      <button type="button" class="cat-btn" data-cat="HTML">HTML</button>
+      <button type="button" class="cat-btn" data-cat="CSS">CSS</button>
+      <button type="button" class="cat-btn" data-cat="JS">JS</button>
+    </div>
+
+    <div id="videoGrid" class="yt-grid"></div>
+  </main>
+</div>
+
+<footer id="footer-links" class="yt-footer">
+  <p>Made as a beginner HTML + CSS + JS YouTube mockup.</p>
+  <p>
+    <a href="https://developer.mozilla.org/" target="_blank" rel="noopener noreferrer">MDN Web Docs</a>
+    •
+    <a href="https://www.w3schools.com/" target="_blank" rel="noopener noreferrer">W3Schools</a>
+    •
+    <a href="#top">Back to Top</a>
+  </p>
+</footer>
+
+<script>
+  const videos = [
+    {
+      id: 1,
+      title: "Learn React in 30 Minutes",
+      channel: "Code Academy",
+      views: "120K views • 2 days ago",
+      category: "React",
+      isShort: false
+    },
+    {
+      id: 2,
+      title: "CSS Grid vs Flexbox Explained",
+      channel: "DesignCourse",
+      views: "85K views • 1 week ago",
+      category: "CSS",
+      isShort: false
+    },
+    {
+      id: 3,
+      title: "React useState Hook for Beginners",
+      channel: "Code Academy",
+      views: "64K views • 3 days ago",
+      category: "React",
+      isShort: false
+    },
+    {
+      id: 4,
+      title: "HTML Basics in 10 Minutes",
+      channel: "Web Starter",
+      views: "42K views • 2 days ago",
+      category: "HTML",
+      isShort: false
+    },
+    {
+      id: 5,
+      title: "Center a Div with Flexbox",
+      channel: "Style Lab",
+      views: "89K views • 1 week ago",
+      category: "CSS",
+      isShort: true
+    },
+    {
+      id: 6,
+      title: "JavaScript Buttons & Events",
+      channel: "Code Path",
+      views: "31K views • 3 days ago",
+      category: "JS",
+      isShort: false
+    }
+  ];
+
+  let currentTab = "Home";
+  let currentCategory = "All";
+  let likedIds = [];
+
+  const searchInput = document.getElementById("searchInput");
+  const clearBtn = document.getElementById("clearBtn");
+  const logoLink = document.getElementById("logoLink");
+  const closePlayerBtn = document.getElementById("closePlayerBtn");
+  const videoGrid = document.getElementById("videoGrid");
+
+  function openVideo(video) {
+    document.getElementById("playerBox").hidden = false;
+    document.getElementById("playerScreen").textContent = "▶ Playing: " + video.title;
+    document.getElementById("playerMeta").textContent =
+            video.channel + " • " + video.views + " • " + video.category;
+  }
+
+  function toggleLike(id) {
+    if (likedIds.includes(id)) {
+      likedIds = likedIds.filter((item) => item !== id);
+    } else {
+      likedIds.push(id);
+    }
+    renderVideos();
+  }
+
+  function renderVideos() {
+    const query = searchInput.value.trim().toLowerCase();
+
+    const filtered = videos.filter((v) => {
+      const matchesQuery =
+              v.title.toLowerCase().includes(query) ||
+              v.channel.toLowerCase().includes(query);
+      const matchesCat =
+              currentCategory === "All" || v.category === currentCategory;
+      const matchesTab =
+              currentTab === "Home" ||
+              (currentTab === "Shorts" && v.isShort) ||
+              (currentTab === "Liked" && likedIds.includes(v.id));
+
+      return matchesQuery && matchesCat && matchesTab;
+    });
+
+    videoGrid.innerHTML = "";
+
+    if (filtered.length === 0) {
+      const emptyMsg = document.createElement("p");
+      emptyMsg.textContent = "No videos match right now.";
+      videoGrid.appendChild(emptyMsg);
+      return;
+    }
+
+    filtered.forEach((v) => {
+      const card = document.createElement("article");
+      card.className = "yt-card";
+
+      const thumb = document.createElement("div");
+      thumb.className = "yt-thumb";
+      thumb.textContent = v.category + " Video";
+      thumb.addEventListener("click", () => openVideo(v));
+
+      const info = document.createElement("div");
+      info.className = "yt-card-info";
+
+      const avatar = document.createElement("div");
+      avatar.className = "yt-avatar";
+      avatar.textContent = v.channel[0];
+
+      const details = document.createElement("div");
+
+      const titleEl = document.createElement("h3");
+      titleEl.textContent = v.title;
+      titleEl.addEventListener("click", () => openVideo(v));
+
+      const channelEl = document.createElement("p");
+      channelEl.textContent = v.channel;
+
+      const viewsEl = document.createElement("p");
+      viewsEl.textContent = v.views;
+
+      const likeBtn = document.createElement("button");
+      likeBtn.type = "button";
+      likeBtn.className = likedIds.includes(v.id) ? "yt-like liked" : "yt-like";
+      likeBtn.textContent = likedIds.includes(v.id) ? "👍 Liked" : "👍 Like";
+      likeBtn.addEventListener("click", () => toggleLike(v.id));
+
+      details.append(titleEl, channelEl, viewsEl, likeBtn);
+      info.append(avatar, details);
+      card.append(thumb, info);
+      videoGrid.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentTab = btn.dataset.tab;
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderVideos();
+    });
+  });
+
+  document.querySelectorAll(".cat-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentCategory = btn.dataset.cat;
+      document.querySelectorAll(".cat-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderVideos();
+    });
+  });
+
+  searchInput.addEventListener("input", renderVideos);
+
+  clearBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    renderVideos();
+  });
+
+  closePlayerBtn.addEventListener("click", () => {
+    document.getElementById("playerBox").hidden = true;
+  });
+
+  logoLink.addEventListener("click", () => {
+    currentTab = "Home";
+    currentCategory = "All";
+    searchInput.value = "";
+    document.getElementById("playerBox").hidden = true;
+    renderVideos();
+  });
+
+  renderVideos();
+</script>
+</body>
 </html>
